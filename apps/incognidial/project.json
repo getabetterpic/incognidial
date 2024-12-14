@@ -45,6 +45,10 @@
         "build"
       ],
       "command": "docker build -f apps/incognidial/Dockerfile . -t incognidial"
+    },
+    "drizzle-generate": {
+      "command": "drizzle-kit generate --config apps/incognidial/drizzle.config.ts",
+      "cwd": "apps/incognidial"
     }
   }
 }
