@@ -10,6 +10,7 @@
     "@nestjs/platform-express": "^10.0.2",
     "axios": "^1.6.0",
     "drizzle-orm": "^0.38.2",
+    "ksuid": "^3.0.0",
     "pg": "^8.13.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0"
