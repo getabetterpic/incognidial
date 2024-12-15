@@ -13,7 +13,7 @@ import { UsersController } from './users/users.controller';
     UsersService,
     {
       provide: 'DATABASE',
-      useFactory: () => drizzle(process.env.DATABASE_URL),
+      useFactory: () => drizzle(process.env.DATABASE_URL!),
     },
   ],
 })

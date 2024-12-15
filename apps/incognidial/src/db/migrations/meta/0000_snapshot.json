@@ -1,5 +1,5 @@
 {
-  "id": "fed53b44-e548-4f75-bd7c-04a25e5c07b8",
+  "id": "d57a523e-61a9-48ac-982c-452770b898ca",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -69,7 +69,23 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "call_logs_virtual_number_id_index": {
+          "name": "call_logs_virtual_number_id_index",
+          "columns": [
+            {
+              "expression": "virtual_number_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "call_logs_virtual_number_id_virtual_numbers_id_fk": {
           "name": "call_logs_virtual_number_id_virtual_numbers_id_fk",
@@ -88,7 +104,12 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "call_logs_duration_check": {
+          "name": "call_logs_duration_check",
+          "value": "\"call_logs\".\"durationSeconds\" >= 0"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.text_logs": {
@@ -163,7 +184,23 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "text_logs_virtual_number_id_index": {
+          "name": "text_logs_virtual_number_id_index",
+          "columns": [
+            {
+              "expression": "virtual_number_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "text_logs_virtual_number_id_virtual_numbers_id_fk": {
           "name": "text_logs_virtual_number_id_virtual_numbers_id_fk",
@@ -240,7 +277,23 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "usage_metrics_virtualNumberId_index": {
+          "name": "usage_metrics_virtualNumberId_index",
+          "columns": [
+            {
+              "expression": "virtualNumberId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "usage_metrics_virtualNumberId_virtual_numbers_id_fk": {
           "name": "usage_metrics_virtualNumberId_virtual_numbers_id_fk",
@@ -295,20 +348,32 @@
           "primaryKey": false,
           "notNull": true
         },
-        "resource_id": {
-          "name": "resource_id",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
         "email": {
           "name": "email",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
+        "password_digest": {
+          "name": "password_digest",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "resource_id": {
+          "name": "resource_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
         "disabled_at": {
           "name": "disabled_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "confirmed_at": {
+          "name": "confirmed_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
@@ -327,7 +392,38 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "users_phone_number_index": {
+          "name": "users_phone_number_index",
+          "columns": [
+            {
+              "expression": "phone_number",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "users_resource_id_index": {
+          "name": "users_resource_id_index",
+          "columns": [
+            {
+              "expression": "resource_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
@@ -413,7 +509,38 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "virtual_numbers_network_id_index": {
+          "name": "virtual_numbers_network_id_index",
+          "columns": [
+            {
+              "expression": "network_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "virtual_numbers_resource_id_index": {
+          "name": "virtual_numbers_resource_id_index",
+          "columns": [
+            {
+              "expression": "resource_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "virtual_numbers_user_id_users_id_fk": {
           "name": "virtual_numbers_user_id_users_id_fk",

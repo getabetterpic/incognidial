@@ -7,7 +7,7 @@ import {
   pgTable,
   text,
   timestamp,
-  unique,
+  uniqueIndex,
   varchar,
 } from 'drizzle-orm/pg-core';
 import KSUID from 'ksuid';
@@ -25,20 +25,16 @@ export const users = pgTable(
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     name: varchar({ length: 255 }),
     phoneNumber: varchar('phone_number', { length: 255 }).notNull(),
+    email: varchar({ length: 255 }),
+    password: varchar('password_digest', { length: 255 }).notNull(),
     resourceId: varchar('resource_id', { length: 255 })
       .notNull()
       .$defaultFn(() => KSUID.randomSync().string),
-    email: varchar({ length: 255 }),
-    password: varchar('password_digest', { length: 255 }),
     disabledAt: timestamp('disabled_at'),
+    confirmedAt: timestamp('confirmed_at'),
     ...withTimestamps(),
   },
-  (t) => [
-    {
-      users_phone_number: unique().on(t.phoneNumber),
-      users_resource_id: unique().on(t.resourceId),
-    },
-  ]
+  (t) => [uniqueIndex().on(t.phoneNumber), uniqueIndex().on(t.resourceId)]
 );
 
 export const virtualNumbers = pgTable(
@@ -56,13 +52,7 @@ export const virtualNumbers = pgTable(
     forwardingEnabled: boolean('forwarding_enabled').default(true),
     ...withTimestamps(),
   },
-  (t) => [
-    {
-      phone_number_idx: index().on(t.phoneNumber),
-      unique_resource_id: unique().on(t.resourceId),
-      unique_network_id: unique().on(t.networkId),
-    },
-  ]
+  (t) => [uniqueIndex().on(t.networkId), uniqueIndex().on(t.resourceId)]
 );
 
 export const callLogs = pgTable(
@@ -79,10 +69,8 @@ export const callLogs = pgTable(
     ...withTimestamps(),
   },
   (t) => [
-    {
-      virtual_number_idx: index().on(t.virtualNumberId),
-      check_duration: check('duration_check', sql`${t.durationSeconds} >= 0`),
-    },
+    index().on(t.virtualNumberId),
+    check('call_logs_duration_check', sql`${t.durationSeconds} >= 0`),
   ]
 );
 
@@ -100,11 +88,7 @@ export const textLogs = pgTable(
     status: varchar({ length: 50 }),
     ...withTimestamps(),
   },
-  (t) => [
-    {
-      virtual_number_idx: index().on(t.virtualNumberId),
-    },
-  ]
+  (t) => [index().on(t.virtualNumberId)]
 );
 
 export const usageMetrics = pgTable(
@@ -116,9 +100,5 @@ export const usageMetrics = pgTable(
     forwardedTexts: integer('forwarded_texts').default(0),
     ...withTimestamps(),
   },
-  (t) => [
-    {
-      virtual_number_idx: index().on(t.virtualNumberId),
-    },
-  ]
+  (t) => [index().on(t.virtualNumberId)]
 );

@@ -5,6 +5,19 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
+  @Post('register')
+  register(
+    @Body()
+    body: {
+      email?: string;
+      phoneNumber?: string;
+      password: string;
+      name?: string;
+    }
+  ) {
+    return this.usersService.register(body);
+  }
+
   @Post('login')
   login(
     @Body() body: { email: string; phoneNumber: string; password: string }
