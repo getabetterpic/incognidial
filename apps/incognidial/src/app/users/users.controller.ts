@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { UsersService } from './users.service';
 
 @Controller('users')
@@ -19,6 +19,7 @@ export class UsersController {
   }
 
   @Post('login')
+  @HttpCode(200)
   login(
     @Body() body: { email: string; phoneNumber: string; password: string }
   ) {

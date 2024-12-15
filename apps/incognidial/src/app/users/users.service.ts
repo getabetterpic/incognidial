@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { users } from '../../db/schema';
-import { eq, or } from 'drizzle-orm';
+import { and, eq, or } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 
 @Injectable()
@@ -26,27 +26,55 @@ export class UsersService {
     }
     const hashedPassword = await bcrypt.hash(params.password, 10);
 
-    if (!params.email && !params.phoneNumber) {
-      throw new BadRequestException('Either email or phone number is required');
+    if (!params.phoneNumber) {
+      throw new BadRequestException('Phone number is required.');
     }
 
-    const [user] = await this.db
-      .insert(users)
-      .values([
-        {
-          phoneNumber: params.phoneNumber || '',
-          email: params.email,
-          password: hashedPassword,
-          name: params.name,
-        },
-      ])
-      .onConflictDoUpdate({
-        target: users.phoneNumber,
-        set: { name: params.name, email: params.email },
-      })
-      .returning({ id: users.resourceId });
+    if (params.email) {
+      const condition = and(
+        eq(users.email, params.email),
+        eq(users.phoneNumber, params.phoneNumber)
+      );
 
-    return user;
+      const [existingUser] = await this.db
+        .select()
+        .from(users)
+        .where(condition);
+      if (existingUser) {
+        throw new BadRequestException(
+          'Email already exists for this phone number.'
+        );
+      }
+    }
+
+    if (params.phoneNumber) {
+      const [existingUser] = await this.db
+        .select()
+        .from(users)
+        .where(eq(users.phoneNumber, params.phoneNumber));
+      if (existingUser) {
+        throw new BadRequestException(
+          'Email already exists for this phone number.'
+        );
+      }
+    }
+
+    try {
+      const [user] = await this.db
+        .insert(users)
+        .values([
+          {
+            phoneNumber: params.phoneNumber || '',
+            email: params.email,
+            password: hashedPassword,
+            name: params.name,
+          },
+        ])
+        .returning({ id: users.resourceId });
+      return user;
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 
   async login(email: string, phoneNumber: string, password: string) {

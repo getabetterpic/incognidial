@@ -34,7 +34,11 @@ export const users = pgTable(
     confirmedAt: timestamp('confirmed_at'),
     ...withTimestamps(),
   },
-  (t) => [uniqueIndex().on(t.phoneNumber), uniqueIndex().on(t.resourceId)]
+  (t) => [
+    uniqueIndex().on(t.phoneNumber),
+    uniqueIndex().on(t.resourceId),
+    uniqueIndex().on(t.phoneNumber, t.email),
+  ]
 );
 
 export const virtualNumbers = pgTable(
