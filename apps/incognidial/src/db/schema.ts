@@ -29,6 +29,7 @@ export const users = pgTable(
       .notNull()
       .$defaultFn(() => KSUID.randomSync().string),
     email: varchar({ length: 255 }),
+    password: varchar('password_digest', { length: 255 }),
     disabledAt: timestamp('disabled_at'),
     ...withTimestamps(),
   },

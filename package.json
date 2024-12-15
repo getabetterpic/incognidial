@@ -9,6 +9,7 @@
     "@nestjs/core": "^10.0.2",
     "@nestjs/platform-express": "^10.0.2",
     "axios": "^1.6.0",
+    "bcrypt": "^5.1.1",
     "drizzle-orm": "^0.38.2",
     "ksuid": "^3.0.0",
     "pg": "^8.13.1",
