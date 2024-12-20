@@ -1,8 +1,8 @@
 import {
   BadRequestException,
-  ForbiddenException,
   Inject,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { users } from '../../db/schema';
@@ -82,10 +82,13 @@ export class UsersService {
       .select()
       .from(users)
       .where(or(eq(users.email, email), eq(users.phoneNumber, phoneNumber)));
+    if (!user) {
+      throw new NotFoundException();
+    }
     const passwordsMatch = await bcrypt.compare(password, user.password);
     if (passwordsMatch) {
       return user;
     }
-    throw new ForbiddenException();
+    throw new NotFoundException();
   }
 }

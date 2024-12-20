@@ -10,12 +10,14 @@ import {
 } from '@nestjs/platform-fastify';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
+import fastifyCookie from '@fastify/cookie';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter()
   );
+  app.register(fastifyCookie);
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
   const port = process.env.PORT || 3000;

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
-import { ForbiddenException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import bcrypt from 'bcrypt';
 
 describe('UsersService', () => {
@@ -96,20 +96,20 @@ describe('UsersService', () => {
     it('should throw if credentials are invalid', async () => {
       whereSpy.mockResolvedValueOnce([
         {
-          password: await bcrypt.hash('correctpassword', 10),
+          password: await bcrypt.hash('correctpassword', 1),
         },
       ]);
 
       await expect(
         service.login('test@test.com', '1234567890', 'wrongpassword')
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should return user if credentials are valid', async () => {
       const mockUser = {
         id: 1,
         email: 'test@test.com',
-        password: await bcrypt.hash('correctpassword', 10),
+        password: await bcrypt.hash('correctpassword', 1),
       };
 
       whereSpy.mockResolvedValueOnce([mockUser]);
@@ -121,6 +121,14 @@ describe('UsersService', () => {
       );
 
       expect(result).toEqual(mockUser);
+    });
+
+    it('throws not found error if user does not exist', () => {
+      whereSpy.mockResolvedValue([]);
+
+      expect(
+        service.login('test@test.com', '1234567890', 'correctpassword')
+      ).rejects.toThrow('Not Found');
     });
   });
 });

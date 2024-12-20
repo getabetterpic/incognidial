@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { UsersController } from './users.controller';
 
 import { Test, TestingModule } from '@nestjs/testing';
@@ -5,7 +6,6 @@ import { UsersService } from './users.service';
 
 describe('UsersController', () => {
   let controller: UsersController;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let usersService: any;
 
   beforeEach(async () => {
@@ -65,31 +65,34 @@ describe('UsersController', () => {
         phoneNumber: '1234567890',
         password: 'correctpassword',
       };
+      const req = {
+        protocol: 'http',
+      };
+      const res = {
+        setCookie: jest.fn(),
+      };
+      const user = {
+        resourceId: 'some-unique-id',
+      };
+      usersService.login.mockResolvedValue(user);
 
-      await controller.login(loginDto);
+      const result = await controller.login(loginDto, req as any, res as any);
 
       expect(usersService.login).toHaveBeenCalledWith(
         loginDto.email,
         loginDto.phoneNumber,
         loginDto.password
       );
-    });
-
-    it('should return the result from usersService.login', async () => {
-      const mockUser = {
-        id: 1,
-        email: 'test@test.com',
-        password: 'hashedpassword',
-      };
-      usersService.login.mockResolvedValue(mockUser);
-
-      const result = await controller.login({
-        email: 'test@test.com',
-        phoneNumber: '1234567890',
-        password: 'correctpassword',
-      });
-
-      expect(result).toEqual(mockUser);
+      expect(res.setCookie).toHaveBeenCalledWith(
+        '_usr_session',
+        'some-unique-id',
+        {
+          secure: false,
+          httpOnly: true,
+          sameSite: 'lax',
+        }
+      );
+      expect(result).toEqual(user);
     });
   });
 });
