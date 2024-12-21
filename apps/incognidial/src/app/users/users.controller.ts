@@ -39,7 +39,7 @@ export class UsersController {
       body.phoneNumber,
       body.password
     );
-    reply.setCookie('_usr_session', user.resourceId, {
+    reply.setCookie('_usr_session', user.id, {
       httpOnly: true,
       secure: req.protocol === 'https',
       sameSite: 'lax',

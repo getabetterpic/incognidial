@@ -79,15 +79,22 @@ export class UsersService {
 
   async login(email: string, phoneNumber: string, password: string) {
     const [user] = await this.db
-      .select()
+      .select({
+        id: users.resourceId,
+        name: users.name,
+        email: users.email,
+        phoneNumber: users.phoneNumber,
+        password: users.password,
+      })
       .from(users)
       .where(or(eq(users.email, email), eq(users.phoneNumber, phoneNumber)));
     if (!user) {
       throw new NotFoundException();
     }
-    const passwordsMatch = await bcrypt.compare(password, user.password);
+    const { password: passwordDigest, ...userWithoutPassword } = user;
+    const passwordsMatch = await bcrypt.compare(password, passwordDigest);
     if (passwordsMatch) {
-      return user;
+      return userWithoutPassword;
     }
     throw new NotFoundException();
   }
