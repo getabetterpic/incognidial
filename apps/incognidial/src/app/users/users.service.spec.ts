@@ -20,8 +20,10 @@ describe('UsersService', () => {
             select: jest.fn().mockReturnThis(),
             from: jest.fn().mockReturnThis(),
             where: whereSpy,
+            update: jest.fn().mockReturnThis(),
             insert: jest.fn().mockReturnThis(),
             values: jest.fn().mockReturnThis(),
+            set: jest.fn().mockReturnThis(),
             returning: returningSpy,
           },
         },
@@ -92,6 +94,52 @@ describe('UsersService', () => {
     });
   });
 
+  describe('confirm', () => {
+    it('should confirm unconfirmed user', async () => {
+      const mockUser = {
+        id: 'uuid',
+        email: 'test@test.com',
+        phoneNumber: '1234567890',
+        name: 'Test User',
+      };
+      returningSpy.mockResolvedValueOnce([mockUser]);
+
+      const result = await service.confirm('confirmation-token');
+
+      expect(result).toEqual(mockUser);
+    });
+
+    it('should reactivate disabled user', async () => {
+      const mockUser = {
+        id: 'uuid',
+        email: 'test@test.com',
+        phoneNumber: '1234567890',
+        name: 'Test User',
+      };
+      returningSpy.mockResolvedValueOnce([mockUser]);
+
+      const result = await service.confirm('confirmation-token');
+
+      expect(result).toEqual(mockUser);
+    });
+
+    it('should throw not found if token is invalid', async () => {
+      returningSpy.mockResolvedValueOnce([]);
+
+      await expect(service.confirm('invalid-token')).rejects.toThrow(
+        NotFoundException
+      );
+    });
+
+    it('should throw not found if confirmation fails', async () => {
+      returningSpy.mockRejectedValueOnce(new Error('DB Error'));
+
+      await expect(service.confirm('confirmation-token')).rejects.toThrow(
+        NotFoundException
+      );
+    });
+  });
+
   describe('login', () => {
     it('should throw if credentials are invalid', async () => {
       whereSpy.mockResolvedValueOnce([
@@ -120,7 +168,10 @@ describe('UsersService', () => {
         'correctpassword'
       );
 
-      expect(result).toEqual(mockUser);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, ...restOfMockUser } = mockUser;
+
+      expect(result).toEqual(restOfMockUser);
     });
 
     it('throws not found error if user does not exist', () => {
@@ -129,6 +180,43 @@ describe('UsersService', () => {
       expect(
         service.login('test@test.com', '1234567890', 'correctpassword')
       ).rejects.toThrow('Not Found');
+    });
+  });
+
+  describe('disable', () => {
+    it('should throw if credentials are invalid', async () => {
+      whereSpy.mockResolvedValueOnce([
+        {
+          password: await bcrypt.hash('correctpassword', 1),
+        },
+      ]);
+
+      await expect(
+        service.disable('1234567890', 'wrongpassword')
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should return success if credentials are valid', async () => {
+      const mockUser = {
+        id: 1,
+        email: 'test@test.com',
+        password: await bcrypt.hash('correctpassword', 1),
+      };
+
+      whereSpy.mockResolvedValueOnce([mockUser]);
+      returningSpy.mockResolvedValueOnce([{ success: true }]);
+
+      const result = await service.disable('1234567890', 'correctpassword');
+
+      expect(result).toEqual({ id: 1, email: 'test@test.com' });
+    });
+
+    it('throws not found error if user does not exist', () => {
+      whereSpy.mockResolvedValue([]);
+
+      expect(service.disable('1234567890', 'correctpassword')).rejects.toThrow(
+        NotFoundException
+      );
     });
   });
 });

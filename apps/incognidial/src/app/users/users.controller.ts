@@ -2,7 +2,9 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   HttpCode,
+  Param,
   Post,
   Req,
   Res,
@@ -25,6 +27,11 @@ export class UsersController {
     }
   ) {
     return this.usersService.register(body);
+  }
+
+  @Get('confirm/:confirmationToken')
+  async confirm(@Param('confirmationToken') confirmationToken: string) {
+    return this.usersService.confirm(confirmationToken);
   }
 
   @Post('login')
@@ -52,5 +59,14 @@ export class UsersController {
   async logout(@Res({ passthrough: true }) reply: FastifyReply) {
     reply.clearCookie('_usr_session');
     return { success: true };
+  }
+
+  @Delete('disable')
+  async disable(
+    @Body() body: { phoneNumber: string; password: string },
+    @Res({ passthrough: true }) reply: FastifyReply
+  ) {
+    reply.clearCookie('_usr_session');
+    return this.usersService.disable(body.phoneNumber, body.password);
   }
 }

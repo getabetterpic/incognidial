@@ -3,6 +3,7 @@ import { UsersController } from './users.controller';
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
+import { NotFoundException } from '@nestjs/common';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -55,6 +56,37 @@ describe('UsersController', () => {
       });
 
       expect(result).toEqual(mockUser);
+    });
+  });
+
+  describe('confirm', () => {
+    beforeEach(() => {
+      usersService.confirm = jest.fn();
+    });
+
+    it('should call usersService.confirm with confirmation token', async () => {
+      const confirmationToken = 'some-token';
+      const mockUser = {
+        id: 'uuid',
+        email: 'test@test.com',
+        phoneNumber: '1234567890',
+        name: 'Test User',
+      };
+      usersService.confirm.mockResolvedValue(mockUser);
+
+      const result = await controller.confirm(confirmationToken);
+
+      expect(usersService.confirm).toHaveBeenCalledWith(confirmationToken);
+      expect(result).toEqual(mockUser);
+    });
+
+    it('should throw if confirmation fails', async () => {
+      const confirmationToken = 'invalid-token';
+      usersService.confirm.mockRejectedValue(new NotFoundException());
+
+      await expect(controller.confirm(confirmationToken)).rejects.toThrow(
+        NotFoundException
+      );
     });
   });
 

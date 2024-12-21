@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { users } from '../../db/schema';
-import { and, eq, or } from 'drizzle-orm';
+import { and, eq, isNotNull, isNull, or } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 
 @Injectable()
@@ -77,6 +77,42 @@ export class UsersService {
     }
   }
 
+  async confirm(confirmationToken: string) {
+    try {
+      const [user] = await this.db
+        .update(users)
+        .set({
+          confirmedAt: new Date(),
+          disabledAt: null,
+        })
+        .where(
+          or(
+            and(
+              eq(users.resourceId, confirmationToken),
+              isNull(users.confirmedAt)
+            ),
+            and(
+              eq(users.resourceId, confirmationToken),
+              isNotNull(users.disabledAt)
+            )
+          )
+        )
+        .returning({
+          id: users.resourceId,
+          email: users.email,
+          phoneNumber: users.phoneNumber,
+          name: users.name,
+        });
+
+      if (user) {
+        return user;
+      }
+      throw new NotFoundException();
+    } catch (error) {
+      throw new NotFoundException(error);
+    }
+  }
+
   async login(email: string, phoneNumber: string, password: string) {
     const [user] = await this.db
       .select({
@@ -87,7 +123,13 @@ export class UsersService {
         password: users.password,
       })
       .from(users)
-      .where(or(eq(users.email, email), eq(users.phoneNumber, phoneNumber)));
+      .where(
+        and(
+          eq(users.phoneNumber, phoneNumber),
+          isNull(users.disabledAt),
+          isNotNull(users.confirmedAt)
+        )
+      );
     if (!user) {
       throw new NotFoundException();
     }
@@ -97,5 +139,36 @@ export class UsersService {
       return userWithoutPassword;
     }
     throw new NotFoundException();
+  }
+
+  async disable(phoneNumber: string, password: string) {
+    const [user] = await this.db
+      .select({
+        id: users.resourceId,
+        password: users.password,
+      })
+      .from(users)
+      .where(
+        and(
+          eq(users.phoneNumber, phoneNumber),
+          isNull(users.disabledAt),
+          isNotNull(users.confirmedAt)
+        )
+      );
+    if (!user) {
+      throw new NotFoundException();
+    }
+    const { password: passwordHash, ...restOfUser } = user;
+    const passwordsMatch = await bcrypt.compare(password, passwordHash);
+    if (!passwordsMatch) {
+      throw new NotFoundException();
+    }
+    await this.db
+      .update(users)
+      .set({
+        disabledAt: new Date(),
+      })
+      .where(eq(users.resourceId, user.id));
+    return restOfUser;
   }
 }
