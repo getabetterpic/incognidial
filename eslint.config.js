@@ -26,9 +26,9 @@ module.exports = [
                     ],
                     depConstraints: [
                         {
-                            sourceTag: "*",
+                            sourceTag: "scope:incognidial",
                             onlyDependOnLibsWithTags: [
-                                "*"
+                                "scope:db"
                             ]
                         }
                     ]

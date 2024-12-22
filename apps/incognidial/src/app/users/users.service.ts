@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { users } from '../../db/schema';
+import { users } from '@incognidial/db';
 import { and, eq, isNotNull, isNull } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 
@@ -74,6 +74,9 @@ export class UsersService {
           id: users.resourceId,
         });
 
+      if (!user) {
+        throw new NotFoundException();
+      }
       return user;
     } catch (error) {
       throw new NotFoundException(error);

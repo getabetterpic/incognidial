@@ -5,6 +5,7 @@
   "implicitDependencies": [
     "incognidial"
   ],
+  "tags": ["scope:incognidial", "type:e2e"],
   "targets": {
     "e2e": {
       "executor": "@nx/jest:jest",

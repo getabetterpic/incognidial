@@ -34,7 +34,6 @@ describe('UsersController', () => {
   describe('register', () => {
     it('should call usersService.register with correct parameters', async () => {
       const registerDto = {
-        email: 'test@test.com',
         phoneNumber: '1234567890',
         password: 'longenoughpassword',
         name: 'Test User',
@@ -50,7 +49,6 @@ describe('UsersController', () => {
       usersService.register.mockResolvedValue(mockUser);
 
       const result = await controller.register({
-        email: 'test@test.com',
         phoneNumber: '1234567890',
         password: 'longenoughpassword',
       });
@@ -104,14 +102,13 @@ describe('UsersController', () => {
         setCookie: jest.fn(),
       };
       const user = {
-        resourceId: 'some-unique-id',
+        id: 'some-unique-id',
       };
       usersService.login.mockResolvedValue(user);
 
       const result = await controller.login(loginDto, req as any, res as any);
 
       expect(usersService.login).toHaveBeenCalledWith(
-        loginDto.email,
         loginDto.phoneNumber,
         loginDto.password
       );

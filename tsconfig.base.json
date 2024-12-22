@@ -15,7 +15,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@incognidial/*": ["apps/incognidial/src/*"]
+      "@incognidial/db": ["libs/db/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

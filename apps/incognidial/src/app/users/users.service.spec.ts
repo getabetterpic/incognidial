@@ -55,18 +55,6 @@ describe('UsersService', () => {
       ).rejects.toThrow('Phone number is required.');
     });
 
-    it('should throw if email already exists for phone number', async () => {
-      whereSpy.mockResolvedValueOnce([{ id: 1 }]);
-
-      await expect(
-        service.register({
-          email: 'test@test.com',
-          phoneNumber: '1234567890',
-          password: 'longenoughpassword',
-        })
-      ).rejects.toThrow('Email already exists for this phone number.');
-    });
-
     it('should throw if phone number already exists', async () => {
       whereSpy.mockResolvedValueOnce([{ id: 1 }]);
 
@@ -75,7 +63,7 @@ describe('UsersService', () => {
           phoneNumber: '1234567890',
           password: 'longenoughpassword',
         })
-      ).rejects.toThrow('Email already exists for this phone number.');
+      ).rejects.toThrow('Phone number already exists.');
     });
 
     it('should create user successfully', async () => {
@@ -84,7 +72,6 @@ describe('UsersService', () => {
       returningSpy.mockResolvedValueOnce([mockUser]);
 
       const result = await service.register({
-        email: 'test@test.com',
         phoneNumber: '1234567890',
         password: 'longenoughpassword',
         name: 'Test User',
@@ -149,7 +136,7 @@ describe('UsersService', () => {
       ]);
 
       await expect(
-        service.login('test@test.com', '1234567890', 'wrongpassword')
+        service.login('1234567890', 'wrongpassword')
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -162,11 +149,7 @@ describe('UsersService', () => {
 
       whereSpy.mockResolvedValueOnce([mockUser]);
 
-      const result = await service.login(
-        'test@test.com',
-        '1234567890',
-        'correctpassword'
-      );
+      const result = await service.login('1234567890', 'correctpassword');
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...restOfMockUser } = mockUser;
@@ -177,9 +160,9 @@ describe('UsersService', () => {
     it('throws not found error if user does not exist', () => {
       whereSpy.mockResolvedValue([]);
 
-      expect(
-        service.login('test@test.com', '1234567890', 'correctpassword')
-      ).rejects.toThrow('Not Found');
+      expect(service.login('1234567890', 'correctpassword')).rejects.toThrow(
+        'Not Found'
+      );
     });
   });
 

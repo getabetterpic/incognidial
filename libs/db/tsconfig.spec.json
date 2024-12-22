@@ -3,18 +3,13 @@
   "compilerOptions": {
     "outDir": "../../dist/out-tsc",
     "module": "commonjs",
-    "types": [
-      "node"
-    ],
-    "emitDecoratorMetadata": true,
-    "target": "es2021"
+    "moduleResolution": "node10",
+    "types": ["jest", "node"]
   },
   "include": [
-    "src/**/*.ts"
-, "../../libs/db/src/lib/schema.ts"  ],
-  "exclude": [
     "jest.config.ts",
+    "src/**/*.test.ts",
     "src/**/*.spec.ts",
-    "src/**/*.test.ts"
+    "src/**/*.d.ts"
   ]
 }

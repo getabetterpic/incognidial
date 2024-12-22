@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { drizzle } from 'drizzle-orm/node-postgres';
-// eslint-disable-next-line @nx/enforce-module-boundaries
-import { users } from '@incognidial/db/schema';
+import { users } from '@incognidial/db';
 
 describe('GET /api', () => {
   it('should return a message', async () => {
