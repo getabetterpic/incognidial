@@ -18,6 +18,11 @@
           "args": [
             "node-env=development"
           ]
+        },
+        "e2e": {
+          "args": [
+            "node-env=test"
+          ]
         }
       }
     },
@@ -37,6 +42,9 @@
         },
         "production": {
           "buildTarget": "incognidial:build:production"
+        },
+        "e2e": {
+          "buildTarget": "incognidial:build:e2e"
         }
       }
     },
@@ -51,6 +59,9 @@
     },
     "drizzle-migrate": {
       "command": "drizzle-kit migrate --config apps/incognidial/drizzle.config.ts"
+    },
+    "drizzle-studio": {
+      "command": "drizzle-kit studio --config apps/incognidial/drizzle.config.ts"
     }
   }
 }

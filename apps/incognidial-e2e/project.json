@@ -18,6 +18,12 @@
       "dependsOn": [
         "incognidial:build"
       ]
+    },
+    "drizzle-migrate": {
+      "command": "drizzle-kit migrate --config apps/incognidial-e2e/drizzle.config.ts"
+    },
+    "drizzle-studio": {
+      "command": "drizzle-kit studio --config apps/incognidial-e2e/drizzle.config.ts"
     }
   }
 }

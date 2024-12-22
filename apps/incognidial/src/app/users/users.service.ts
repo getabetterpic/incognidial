@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { users } from '../../db/schema';
-import { and, eq, isNotNull, isNull, or } from 'drizzle-orm';
+import { and, eq, isNotNull, isNull } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 
 @Injectable()
@@ -20,46 +20,26 @@ export class UsersService {
     name?: string;
   }) {
     if (params.password.length < 12) {
+      // require 12 characters for passwords
       throw new BadRequestException(
         'Password must be at least 12 characters long.'
       );
     }
-    const hashedPassword = await bcrypt.hash(params.password, 10);
 
     if (!params.phoneNumber) {
       throw new BadRequestException('Phone number is required.');
     }
 
-    if (params.email) {
-      const condition = and(
-        eq(users.email, params.email),
-        eq(users.phoneNumber, params.phoneNumber)
-      );
-
-      const [existingUser] = await this.db
-        .select()
-        .from(users)
-        .where(condition);
-      if (existingUser) {
-        throw new BadRequestException(
-          'Email already exists for this phone number.'
-        );
-      }
-    }
-
-    if (params.phoneNumber) {
-      const [existingUser] = await this.db
-        .select()
-        .from(users)
-        .where(eq(users.phoneNumber, params.phoneNumber));
-      if (existingUser) {
-        throw new BadRequestException(
-          'Email already exists for this phone number.'
-        );
-      }
+    const existingUsers = await this.db
+      .select()
+      .from(users)
+      .where(eq(users.phoneNumber, params.phoneNumber));
+    if (existingUsers.length) {
+      throw new BadRequestException('Phone number already exists.');
     }
 
     try {
+      const hashedPassword = await bcrypt.hash(params.password, 10);
       const [user] = await this.db
         .insert(users)
         .values([
@@ -83,37 +63,24 @@ export class UsersService {
         .update(users)
         .set({
           confirmedAt: new Date(),
-          disabledAt: null,
         })
         .where(
-          or(
-            and(
-              eq(users.resourceId, confirmationToken),
-              isNull(users.confirmedAt)
-            ),
-            and(
-              eq(users.resourceId, confirmationToken),
-              isNotNull(users.disabledAt)
-            )
+          and(
+            eq(users.resourceId, confirmationToken),
+            isNull(users.confirmedAt)
           )
         )
         .returning({
           id: users.resourceId,
-          email: users.email,
-          phoneNumber: users.phoneNumber,
-          name: users.name,
         });
 
-      if (user) {
-        return user;
-      }
-      throw new NotFoundException();
+      return user;
     } catch (error) {
       throw new NotFoundException(error);
     }
   }
 
-  async login(email: string, phoneNumber: string, password: string) {
+  async login(phoneNumber: string, password: string) {
     const [user] = await this.db
       .select({
         id: users.resourceId,

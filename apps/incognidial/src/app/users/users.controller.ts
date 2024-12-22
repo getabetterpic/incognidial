@@ -37,15 +37,11 @@ export class UsersController {
   @Post('login')
   @HttpCode(200)
   async login(
-    @Body() body: { email: string; phoneNumber: string; password: string },
+    @Body() body: { phoneNumber: string; password: string },
     @Req() req: FastifyRequest,
     @Res({ passthrough: true }) reply: FastifyReply
   ) {
-    const user = await this.usersService.login(
-      body.email,
-      body.phoneNumber,
-      body.password
-    );
+    const user = await this.usersService.login(body.phoneNumber, body.password);
     reply.setCookie('_usr_session', user.id, {
       httpOnly: true,
       secure: req.protocol === 'https',
