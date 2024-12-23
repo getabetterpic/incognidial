@@ -2,18 +2,27 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { NotFoundException } from '@nestjs/common';
 import bcrypt from 'bcrypt';
+import { EmailService } from '../email/email.service';
 
 describe('UsersService', () => {
   let service: UsersService;
   let whereSpy: jest.Mock;
   let returningSpy: jest.Mock;
+  let confirmationSpy: jest.Mock;
 
   beforeEach(async () => {
     whereSpy = jest.fn().mockReturnThis();
     returningSpy = jest.fn().mockReturnThis();
+    confirmationSpy = jest.fn();
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
+        {
+          provide: EmailService,
+          useValue: {
+            sendConfirmationEmail: confirmationSpy,
+          },
+        },
         {
           provide: 'DATABASE',
           useValue: {

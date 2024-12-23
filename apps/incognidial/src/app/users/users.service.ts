@@ -8,10 +8,15 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { users } from '@incognidial/db';
 import { and, eq, isNotNull, isNull } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
+import { EmailService } from '../email/email.service';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class UsersService {
-  constructor(@Inject('DATABASE') private db: NodePgDatabase) {}
+  constructor(
+    @Inject('DATABASE') private db: NodePgDatabase,
+    private readonly emailService: EmailService
+  ) {}
 
   async register(params: {
     email?: string;
@@ -50,7 +55,16 @@ export class UsersService {
             name: params.name,
           },
         ])
-        .returning({ id: users.resourceId });
+        .returning({
+          id: users.resourceId,
+          email: users.email,
+          phoneNumber: users.phoneNumber,
+        });
+      if (user.email) {
+        await lastValueFrom(
+          this.emailService.sendConfirmationEmail(user.email, user.id)
+        );
+      }
       return user;
     } catch (error) {
       throw new BadRequestException(error);
