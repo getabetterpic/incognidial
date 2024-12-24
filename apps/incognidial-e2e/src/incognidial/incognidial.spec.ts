@@ -20,7 +20,6 @@ describe('POST /api/users/register', () => {
 
   it('should register a new user with valid data', async () => {
     const userData = {
-      email: 'test@example.com',
       phoneNumber: '1234567890',
       password: 'securepassword12',
       name: 'Test User',
@@ -34,7 +33,6 @@ describe('POST /api/users/register', () => {
 
   it('should reject registration with short password', async () => {
     const userData = {
-      email: 'test@example.com',
       phoneNumber: '1234567890',
       password: 'short',
       name: 'Test User',
@@ -50,7 +48,6 @@ describe('POST /api/users/register', () => {
 
   it('should reject registration without phone number', async () => {
     const userData = {
-      email: 'test@example.com',
       password: 'securepassword12',
       name: 'Test User',
     };
@@ -60,13 +57,14 @@ describe('POST /api/users/register', () => {
       fail('Should have thrown error');
     } catch (error) {
       expect(error.response.status).toBe(400);
-      expect(error.response.data.message).toBe('Phone number is required.');
+      expect(error.response.data.message).toBe([
+        'phoneNumber must be a string',
+      ]);
     }
   });
 
   it('should reject duplicate phone number registration', async () => {
     const userData = {
-      email: 'test@example.com',
       phoneNumber: '1234567890',
       password: 'securepassword12',
       name: 'Test User',

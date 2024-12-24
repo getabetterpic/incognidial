@@ -24,13 +24,7 @@ export class UsersService {
     password: string;
     name?: string;
   }) {
-    if (params.password.length < 12) {
-      // require 12 characters for passwords
-      throw new BadRequestException(
-        'Password must be at least 12 characters long.'
-      );
-    }
-
+    // require phone number
     if (!params.phoneNumber) {
       throw new BadRequestException('Phone number is required.');
     }

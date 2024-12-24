@@ -11,6 +11,8 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { FastifyRequest, FastifyReply } from 'fastify';
+import { UserLoginDto } from './user-login.dto';
+import { UserRegistrationDto } from './user-registration.dto';
 
 @Controller('users')
 export class UsersController {
@@ -19,12 +21,7 @@ export class UsersController {
   @Post('register')
   register(
     @Body()
-    body: {
-      email?: string;
-      phoneNumber?: string;
-      password: string;
-      name?: string;
-    }
+    body: UserRegistrationDto
   ) {
     return this.usersService.register(body);
   }
@@ -37,7 +34,7 @@ export class UsersController {
   @Post('login')
   @HttpCode(200)
   async login(
-    @Body() body: { phoneNumber: string; password: string },
+    @Body() body: UserLoginDto,
     @Req() req: FastifyRequest,
     @Res({ passthrough: true }) reply: FastifyReply
   ) {
