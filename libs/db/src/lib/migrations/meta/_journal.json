@@ -15,6 +15,13 @@
       "when": 1734257666332,
       "tag": "0001_new_ikaris",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1735120763280,
+      "tag": "0002_fair_crusher_hogan",
+      "breakpoints": true
     }
   ]
 }

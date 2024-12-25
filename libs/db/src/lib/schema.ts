@@ -32,6 +32,7 @@ export const users = pgTable(
       .$defaultFn(() => KSUID.randomSync().string),
     disabledAt: timestamp('disabled_at'),
     confirmedAt: timestamp('confirmed_at'),
+    otpSecret: varchar('otp_secret', { length: 255 }),
     ...withTimestamps(),
   },
   (t) => [
