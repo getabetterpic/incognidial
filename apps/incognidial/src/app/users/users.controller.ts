@@ -13,6 +13,7 @@ import { UsersService } from './users.service';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { UserLoginDto } from './user-login.dto';
 import { UserRegistrationDto } from './user-registration.dto';
+import { UserDisableDto } from './user-disable.dto';
 
 @Controller('users')
 export class UsersController {
@@ -56,7 +57,7 @@ export class UsersController {
 
   @Delete('disable')
   async disable(
-    @Body() body: { phoneNumber: string; password: string },
+    @Body() body: UserDisableDto,
     @Res({ passthrough: true }) reply: FastifyReply
   ) {
     reply.clearCookie('_usr_session');

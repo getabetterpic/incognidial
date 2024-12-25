@@ -141,12 +141,16 @@ export class UsersService {
     if (!passwordsMatch) {
       throw new NotFoundException();
     }
-    await this.db
-      .update(users)
-      .set({
-        disabledAt: new Date(),
-      })
-      .where(eq(users.resourceId, user.id));
-    return restOfUser;
+    try {
+      await this.db
+        .update(users)
+        .set({
+          disabledAt: new Date(),
+        })
+        .where(eq(users.resourceId, user.id));
+      return restOfUser;
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 }
