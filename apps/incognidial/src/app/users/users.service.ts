@@ -10,6 +10,8 @@ import { and, eq, isNotNull, isNull } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 import { EmailService } from '../email/email.service';
 import { lastValueFrom } from 'rxjs';
+import { UserRegistrationDto } from './user-registration.dto';
+import OTPAuth from 'otpauth';
 
 @Injectable()
 export class UsersService {
@@ -18,17 +20,7 @@ export class UsersService {
     private readonly emailService: EmailService
   ) {}
 
-  async register(params: {
-    email?: string;
-    phoneNumber?: string;
-    password: string;
-    name?: string;
-  }) {
-    // require phone number
-    if (!params.phoneNumber) {
-      throw new BadRequestException('Phone number is required.');
-    }
-
+  async register(params: UserRegistrationDto) {
     const existingUsers = await this.db
       .select()
       .from(users)
@@ -47,37 +39,73 @@ export class UsersService {
             email: params.email,
             password: hashedPassword,
             name: params.name,
+            otpSecret: new OTPAuth.Secret({ size: 20 }).base32,
           },
         ])
         .returning({
           id: users.resourceId,
           email: users.email,
           phoneNumber: users.phoneNumber,
+          otpSecret: users.otpSecret,
         });
+
       if (user.email) {
         await lastValueFrom(
           this.emailService.sendConfirmationEmail(user.email, user.id)
         );
       }
-      return user;
+
+      let token: string | undefined;
+      if (user.otpSecret) {
+        const totp = new OTPAuth.TOTP({
+          issuer: 'IncogniDial',
+          label: user.phoneNumber,
+          secret: user.otpSecret,
+        });
+        token = totp.generate();
+      }
+
+      return { ...user, token };
     } catch (error) {
       throw new BadRequestException(error);
     }
   }
 
-  async confirm(confirmationToken: string) {
+  async confirm(resourceId: string, token: string) {
+    if (!token) {
+      throw new NotFoundException();
+    }
+
+    const [existingUser] = await this.db
+      .select({
+        otpSecret: users.otpSecret,
+        phoneNumber: users.phoneNumber,
+      })
+      .from(users)
+      .where(and(eq(users.resourceId, resourceId), isNull(users.confirmedAt)));
+
+    if (!existingUser || !existingUser.otpSecret) {
+      throw new NotFoundException();
+    }
+
+    const totp = new OTPAuth.TOTP({
+      issuer: 'IncogniDial',
+      label: existingUser.phoneNumber,
+      secret: existingUser.otpSecret,
+    });
+
+    const delta = totp.validate({ token });
+    if (delta == null) {
+      throw new NotFoundException();
+    }
+
     try {
       const [user] = await this.db
         .update(users)
         .set({
           confirmedAt: new Date(),
         })
-        .where(
-          and(
-            eq(users.resourceId, confirmationToken),
-            isNull(users.confirmedAt)
-          )
-        )
+        .where(and(eq(users.resourceId, resourceId), isNull(users.confirmedAt)))
         .returning({
           id: users.resourceId,
         });
@@ -85,6 +113,7 @@ export class UsersService {
       if (!user) {
         throw new NotFoundException();
       }
+
       return user;
     } catch (error) {
       throw new NotFoundException(error);
@@ -92,22 +121,7 @@ export class UsersService {
   }
 
   async login(phoneNumber: string, password: string) {
-    const [user] = await this.db
-      .select({
-        id: users.resourceId,
-        name: users.name,
-        email: users.email,
-        phoneNumber: users.phoneNumber,
-        password: users.password,
-      })
-      .from(users)
-      .where(
-        and(
-          eq(users.phoneNumber, phoneNumber),
-          isNull(users.disabledAt),
-          isNotNull(users.confirmedAt)
-        )
-      );
+    const user = await this.findByPhoneNumber(phoneNumber);
     if (!user) {
       throw new NotFoundException();
     }
@@ -119,20 +133,37 @@ export class UsersService {
     throw new NotFoundException();
   }
 
-  async disable(phoneNumber: string, password: string) {
+  async resendConfirmationCode(phoneNumber: string) {
     const [user] = await this.db
       .select({
         id: users.resourceId,
-        password: users.password,
+        otpSecret: users.otpSecret,
+        phoneNumber: users.phoneNumber,
       })
       .from(users)
       .where(
         and(
           eq(users.phoneNumber, phoneNumber),
           isNull(users.disabledAt),
-          isNotNull(users.confirmedAt)
+          isNull(users.confirmedAt)
         )
       );
+
+    if (!user || !user.otpSecret) {
+      throw new NotFoundException();
+    }
+
+    const totp = new OTPAuth.TOTP({
+      issuer: 'IncogniDial',
+      label: user.phoneNumber,
+      secret: user.otpSecret,
+    });
+    const token = totp.generate();
+    return token;
+  }
+
+  async disable(phoneNumber: string, password: string) {
+    const user = await this.findByPhoneNumber(phoneNumber);
     if (!user) {
       throw new NotFoundException();
     }
@@ -147,10 +178,24 @@ export class UsersService {
         .set({
           disabledAt: new Date(),
         })
-        .where(eq(users.resourceId, user.id));
+        .where(eq(users.resourceId, user.resourceId));
       return restOfUser;
     } catch (error) {
       throw new BadRequestException(error);
     }
+  }
+
+  async findByPhoneNumber(phoneNumber: string) {
+    const [user] = await this.db
+      .select()
+      .from(users)
+      .where(
+        and(
+          eq(users.phoneNumber, phoneNumber),
+          isNotNull(users.confirmedAt),
+          isNull(users.disabledAt)
+        )
+      );
+    return user;
   }
 }

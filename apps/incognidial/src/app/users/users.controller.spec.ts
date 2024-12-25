@@ -72,9 +72,12 @@ describe('UsersController', () => {
       };
       usersService.confirm.mockResolvedValue(mockUser);
 
-      const result = await controller.confirm(confirmationToken);
+      const result = await controller.confirm(confirmationToken, '000000');
 
-      expect(usersService.confirm).toHaveBeenCalledWith(confirmationToken);
+      expect(usersService.confirm).toHaveBeenCalledWith(
+        confirmationToken,
+        '000000'
+      );
       expect(result).toEqual(mockUser);
     });
 
@@ -82,9 +85,9 @@ describe('UsersController', () => {
       const confirmationToken = 'invalid-token';
       usersService.confirm.mockRejectedValue(new NotFoundException());
 
-      await expect(controller.confirm(confirmationToken)).rejects.toThrow(
-        NotFoundException
-      );
+      await expect(
+        controller.confirm(confirmationToken, '000000')
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -102,7 +105,7 @@ describe('UsersController', () => {
         setCookie: jest.fn(),
       };
       const user = {
-        id: 'some-unique-id',
+        resourceId: 'some-unique-id',
       };
       usersService.login.mockResolvedValue(user);
 

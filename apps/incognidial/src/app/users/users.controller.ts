@@ -6,6 +6,7 @@ import {
   HttpCode,
   Param,
   Post,
+  Query,
   Req,
   Res,
 } from '@nestjs/common';
@@ -27,9 +28,12 @@ export class UsersController {
     return this.usersService.register(body);
   }
 
-  @Get('confirm/:confirmationToken')
-  async confirm(@Param('confirmationToken') confirmationToken: string) {
-    return this.usersService.confirm(confirmationToken);
+  @Get('confirm/:resourceId')
+  async confirm(
+    @Param('resourceId') resourceId: string,
+    @Query('code') code: string
+  ) {
+    return this.usersService.confirm(resourceId, code);
   }
 
   @Post('login')
@@ -40,7 +44,7 @@ export class UsersController {
     @Res({ passthrough: true }) reply: FastifyReply
   ) {
     const user = await this.usersService.login(body.phoneNumber, body.password);
-    reply.setCookie('_usr_session', user.id, {
+    reply.setCookie('_usr_session', user.resourceId, {
       httpOnly: true,
       secure: req.protocol === 'https',
       sameSite: 'lax',

@@ -4,6 +4,20 @@ import { NotFoundException } from '@nestjs/common';
 import bcrypt from 'bcrypt';
 import { EmailService } from '../email/email.service';
 
+const validateSpy = jest.fn();
+class MockOTP {
+  validate = validateSpy;
+}
+jest.mock('otpauth', () => ({
+  __esModule: true,
+  default: {
+    TOTP: jest.fn().mockImplementation(() => new MockOTP()),
+    Secret: jest.fn().mockImplementation(() => ({
+      base32: 'mock-secret',
+    })),
+  },
+}));
+
 describe('UsersService', () => {
   let service: UsersService;
   let whereSpy: jest.Mock;
@@ -47,23 +61,6 @@ describe('UsersService', () => {
   });
 
   describe('register', () => {
-    it('should throw if password is less than 12 characters', async () => {
-      await expect(
-        service.register({
-          phoneNumber: '1234567890',
-          password: 'short',
-        })
-      ).rejects.toThrow('Password must be at least 12 characters long.');
-    });
-
-    it('should throw if phone number is missing', async () => {
-      await expect(
-        service.register({
-          password: 'longenoughpassword',
-        })
-      ).rejects.toThrow('Phone number is required.');
-    });
-
     it('should throw if phone number already exists', async () => {
       whereSpy.mockResolvedValueOnce([{ id: 1 }]);
 
@@ -97,11 +94,15 @@ describe('UsersService', () => {
         email: 'test@test.com',
         phoneNumber: '1234567890',
         name: 'Test User',
+        otpSecret: 'secret',
       };
+      whereSpy.mockResolvedValueOnce([mockUser]);
       returningSpy.mockResolvedValueOnce([mockUser]);
+      validateSpy.mockResolvedValueOnce(0);
 
-      const result = await service.confirm('confirmation-token');
+      const result = await service.confirm('confirmation-token', '000000');
 
+      expect(validateSpy).toHaveBeenCalledWith({ token: '000000' });
       expect(result).toEqual(mockUser);
     });
 
@@ -111,28 +112,32 @@ describe('UsersService', () => {
         email: 'test@test.com',
         phoneNumber: '1234567890',
         name: 'Test User',
+        otpSecret: 'secret',
       };
+      whereSpy.mockResolvedValueOnce([mockUser]);
       returningSpy.mockResolvedValueOnce([mockUser]);
+      validateSpy.mockResolvedValueOnce(0);
 
-      const result = await service.confirm('confirmation-token');
+      const result = await service.confirm('confirmation-token', '000000');
 
       expect(result).toEqual(mockUser);
     });
 
     it('should throw not found if token is invalid', async () => {
-      returningSpy.mockResolvedValueOnce([]);
+      whereSpy.mockResolvedValueOnce([]);
 
-      await expect(service.confirm('invalid-token')).rejects.toThrow(
+      await expect(service.confirm('invalid-token', '000000')).rejects.toThrow(
         NotFoundException
       );
     });
 
     it('should throw not found if confirmation fails', async () => {
-      returningSpy.mockRejectedValueOnce(new Error('DB Error'));
+      whereSpy.mockResolvedValueOnce([{ otpSecret: 'secret' }]);
+      whereSpy.mockRejectedValueOnce(new Error('DB Error'));
 
-      await expect(service.confirm('confirmation-token')).rejects.toThrow(
-        NotFoundException
-      );
+      await expect(
+        service.confirm('confirmation-token', '000000')
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
