@@ -77,7 +77,7 @@
 
     <section id="contact" class="contact bg-white text-center py-16">
       <h2 class="text-3xl font-bold mb-8">Contact Us</h2>
-      <form class="max-w-md mx-auto flex flex-col" netlify>
+      <form class="max-w-md mx-auto flex flex-col" netlify="true">
         <label class="text-left mb-2">Name</label>
         <input type="text" class="mb-4 p-2 border rounded" placeholder="Your Name">
         <label class="text-left mb-2">Email</label>
