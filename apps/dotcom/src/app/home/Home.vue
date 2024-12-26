@@ -77,15 +77,15 @@
 
     <section id="contact" class="contact bg-white text-center py-16">
       <h2 class="text-3xl font-bold mb-8">Contact Us</h2>
-      <form class="max-w-md mx-auto flex flex-col">
+      <form class="max-w-md mx-auto flex flex-col" netlify>
         <label class="text-left mb-2">Name</label>
         <input type="text" class="mb-4 p-2 border rounded" placeholder="Your Name">
         <label class="text-left mb-2">Email</label>
         <input type="email" class="mb-4 p-2 border rounded" placeholder="Your Email">
         <label class="text-left mb-2">Message</label>
         <textarea class="mb-4 p-2 border rounded" placeholder="Your Message"></textarea>
-        <button type="submit" class="bg-blue-800 text-white-50 px-4 py-2 rounded hover:bg-blue-700">Send
-          Message
+        <button type="submit" class="bg-blue-800 text-white-50 px-4 py-2 rounded hover:bg-blue-700">
+          Send Message
         </button>
       </form>
     </section>
