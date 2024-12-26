@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import NxWelcome from './NxWelcome.vue';
+import Home from './home/Home.vue';
 </script>
 
 <template>
-  <NxWelcome title="dotcom" />
+  <Home />
 </template>
