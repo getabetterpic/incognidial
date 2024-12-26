@@ -69,7 +69,7 @@
         </div>
         <div class="tier bg-white p-6 m-4 rounded shadow-md w-72">
           <h3 class="text-xl font-semibold mb-4">Enterprise Plan</h3>
-          <p class="mb-4">$50/month</p>
+          <p class="mb-4">Contact us for pricing</p>
           <p>Unlimited numbers and priority support.</p>
         </div>
       </div>
