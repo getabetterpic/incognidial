@@ -55,24 +55,24 @@ export class UsersService {
         );
       }
 
-      let token: string | undefined;
+      let code: string | undefined;
       if (user.otpSecret) {
         const totp = new OTPAuth.TOTP({
           issuer: 'IncogniDial',
           label: user.phoneNumber,
           secret: user.otpSecret,
         });
-        token = totp.generate();
+        code = totp.generate();
       }
 
-      return { ...user, token };
+      return { ...user, code };
     } catch (error) {
       throw new BadRequestException(error);
     }
   }
 
-  async confirm(resourceId: string, token: string) {
-    if (!token) {
+  async confirm(resourceId: string, code: string) {
+    if (!code) {
       throw new NotFoundException();
     }
 
@@ -94,7 +94,7 @@ export class UsersService {
       secret: existingUser.otpSecret,
     });
 
-    const delta = totp.validate({ token });
+    const delta = totp.validate({ token: code });
     if (delta == null) {
       throw new NotFoundException();
     }
@@ -158,8 +158,8 @@ export class UsersService {
       label: user.phoneNumber,
       secret: user.otpSecret,
     });
-    const token = totp.generate();
-    return token;
+    const code = totp.generate();
+    return code;
   }
 
   async disable(phoneNumber: string, password: string) {
