@@ -4,5 +4,12 @@
   "projectType": "application",
   "sourceRoot": "apps/dotcom/src",
   "// targets": "to see all targets run: nx show project dotcom --web",
-  "targets": {}
+  "targets": {
+    "build": {
+      "command": "vite build"
+    },
+    "serve": {
+      "command": "vite"
+    }
+  }
 }
