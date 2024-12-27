@@ -1,5 +1,6 @@
 /// <reference types='vitest' />
 import { defineConfig } from 'vite';
+import glob from 'glob';
 
 export default defineConfig({
   root: __dirname,
@@ -24,6 +25,17 @@ export default defineConfig({
     commonjsOptions: {
       transformMixedEsModules: true,
     },
+    rollupOptions: {
+      input: {
+        main: './index.html',
+        ...Object.fromEntries(
+          glob.sync('./pages/**/*.html').map(file => [
+            file.replace('./pages/', '').replace('.html', ''),
+            file
+          ])
+        )
+      }
+    }
   },
   test: {
     watch: false,
