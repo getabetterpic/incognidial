@@ -12,10 +12,13 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
 import fastifyCookie from '@fastify/cookie';
 
+const corsMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
+
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter()
+    new FastifyAdapter(),
+    { cors: { methods: corsMethods } }
   );
   app.register(fastifyCookie);
   app.useGlobalPipes(

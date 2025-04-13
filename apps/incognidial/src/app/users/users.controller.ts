@@ -28,6 +28,11 @@ export class UsersController {
     return this.usersService.register(body);
   }
 
+  @Post('resend-confirmation-code')
+  resendConfirmationCode(@Body() { phoneNumber }: { phoneNumber: string }) {
+    return this.usersService.resendConfirmationCode(phoneNumber);
+  }
+
   @Get('confirm/:resourceId')
   async confirm(
     @Param('resourceId') resourceId: string,

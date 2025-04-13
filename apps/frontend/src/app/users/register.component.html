@@ -4,18 +4,18 @@
   class="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md"
 >
   <div class="mb-4">
-    <label for="phone" class="block text-gray-700 text-sm font-bold mb-2"
+    <label for="phoneNumber" class="block text-gray-700 text-sm font-bold mb-2"
       >Phone Number</label
     >
     <input
       type="tel"
-      id="phone"
+      id="phoneNumber"
       formControlName="phoneNumber"
       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
       placeholder="Enter your phone number"
     />
     <div
-      *ngIf="registerForm.get('phone')?.errors?.['required'] && registerForm.get('phone')?.touched"
+      *ngIf="phoneNumber?.touched && phoneNumber?.errors?.['required']"
       class="text-red-500 text-sm mt-1"
     >
       Phone number is required
@@ -34,7 +34,7 @@
       placeholder="Enter your password"
     />
     <div
-      *ngIf="registerForm.get('password')?.errors?.['required'] && registerForm.get('password')?.touched"
+      *ngIf="password?.touched && password?.errors?.['required']"
       class="text-red-500 text-sm mt-1"
     >
       Password is required
@@ -43,19 +43,19 @@
 
   <div class="mb-6">
     <label
-      for="confirmPassword"
+      for="passwordConfirmation"
       class="block text-gray-700 text-sm font-bold mb-2"
       >Confirm Password</label
     >
     <input
       type="password"
-      id="confirmPassword"
-      formControlName="confirmPassword"
+      id="passwordConfirmation"
+      formControlName="passwordConfirmation"
       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
       placeholder="Confirm your password"
     />
     <div
-      *ngIf="registerForm.get('confirmPassword')?.errors?.['required'] && registerForm.get('confirmPassword')?.touched"
+      *ngIf="passwordConfirmation?.touched && passwordConfirmation?.errors?.['required']"
       class="text-red-500 text-sm mt-1"
     >
       Password confirmation is required

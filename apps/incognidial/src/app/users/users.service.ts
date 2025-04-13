@@ -40,36 +40,28 @@ export class UsersService {
         .values([
           {
             phoneNumber: e164PhoneNumber,
-            email: params.email,
             password: hashedPassword,
-            name: params.name,
             otpSecret: new OTPAuth.Secret({ size: 20 }).base32,
           },
         ])
         .returning({
           id: users.resourceId,
-          email: users.email,
           phoneNumber: users.phoneNumber,
           otpSecret: users.otpSecret,
         });
 
-      if (user.email) {
-        await lastValueFrom(
-          this.emailService.sendConfirmationEmail(user.email, user.id)
-        );
-      }
-
       let code: string | undefined;
-      if (user.otpSecret) {
+      const { otpSecret, ...restOfUser } = user;
+      if (otpSecret) {
         const totp = new OTPAuth.TOTP({
           issuer: 'IncogniDial',
-          label: user.phoneNumber,
-          secret: user.otpSecret,
+          label: restOfUser.phoneNumber,
+          secret: otpSecret,
         });
         code = totp.generate();
       }
 
-      return { ...user, code };
+      return { ...restOfUser, code };
     } catch (error) {
       throw new BadRequestException(error);
     }
@@ -138,6 +130,7 @@ export class UsersService {
   }
 
   async resendConfirmationCode(phoneNumber: string) {
+    const e164PhoneNumber = this.toE164(phoneNumber);
     const [user] = await this.db
       .select({
         id: users.resourceId,
@@ -147,7 +140,7 @@ export class UsersService {
       .from(users)
       .where(
         and(
-          eq(users.phoneNumber, phoneNumber),
+          eq(users.phoneNumber, e164PhoneNumber),
           isNull(users.disabledAt),
           isNull(users.confirmedAt)
         )
@@ -163,7 +156,7 @@ export class UsersService {
       secret: user.otpSecret,
     });
     const code = totp.generate();
-    return code;
+    return { id: user.id, code };
   }
 
   async disable(phoneNumber: string, password: string) {
