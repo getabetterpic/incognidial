@@ -12,6 +12,7 @@ import { EmailService } from '../email/email.service';
 import { lastValueFrom } from 'rxjs';
 import { UserRegistrationDto } from './user-registration.dto';
 import OTPAuth from 'otpauth';
+import parsePhoneNumber from 'libphonenumber-js';
 
 @Injectable()
 export class UsersService {
@@ -21,12 +22,15 @@ export class UsersService {
   ) {}
 
   async register(params: UserRegistrationDto) {
+    const e164PhoneNumber = this.toE164(params.phoneNumber);
     const existingUsers = await this.db
       .select()
       .from(users)
-      .where(eq(users.phoneNumber, params.phoneNumber));
+      .where(eq(users.phoneNumber, e164PhoneNumber));
     if (existingUsers.length) {
-      throw new BadRequestException('Phone number already exists.');
+      throw new BadRequestException(
+        `Phone number already exists: ${params.phoneNumber}`
+      );
     }
 
     try {
@@ -35,7 +39,7 @@ export class UsersService {
         .insert(users)
         .values([
           {
-            phoneNumber: params.phoneNumber || '',
+            phoneNumber: e164PhoneNumber,
             email: params.email,
             password: hashedPassword,
             name: params.name,
@@ -186,16 +190,25 @@ export class UsersService {
   }
 
   async findByPhoneNumber(phoneNumber: string) {
+    const e164PhoneNumber = this.toE164(phoneNumber);
     const [user] = await this.db
       .select()
       .from(users)
       .where(
         and(
-          eq(users.phoneNumber, phoneNumber),
+          eq(users.phoneNumber, e164PhoneNumber),
           isNotNull(users.confirmedAt),
           isNull(users.disabledAt)
         )
       );
     return user;
+  }
+
+  toE164(phoneNumber: string) {
+    const pn = parsePhoneNumber(phoneNumber, 'US');
+    if (!pn?.isValid()) {
+      throw new BadRequestException(`Invalid phone number: ${phoneNumber}`);
+    }
+    return pn?.format('E.164');
   }
 }
